@@ -78,6 +78,20 @@ def pull(name, xlist):
     
     dockerPull( name )
 
+@main.command()
+@click.help_option('-h', '--help')
+def list():
+    """List images status"""
+
+    raise Exception('Not yet implemented')
+
+@main.command()
+@click.help_option('-h', '--help')
+def wordlist():
+    """Manage wordlists"""
+
+    raise Exception('Not yet implemented')
+
 # Run app lifecycle
 def run(image: str, entrypoint: str, pull: bool = False, volume: tuple = ()):
 
