@@ -3,7 +3,7 @@
 # Install zsh using `zsh-in-docker`
 sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
     -t afowler \
-    -p git \ 
+    -p git \
     -p zsh-z \
     -a 'alias vi="vim"' \
     -a 'PATH=$PATH:/tools/bin'
