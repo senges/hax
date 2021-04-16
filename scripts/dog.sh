@@ -2,8 +2,25 @@
 
 apt install -y --no-install-recommends gnupg2
 
-# Add community apt repo
-echo "deb http://packages.azlux.fr/debian/ buster main" | tee /etc/apt/sources.list.d/azlux.list
-wget -qO - https://azlux.fr/repo.gpg.key | apt-key add - 
+# Download latest release
+curl --silent "https://api.github.com/repos/ogham/dog/releases/latest" \
+    | grep '"tag_name":' \
+    | sed -E 's/.*"v([^"]+)".*/\1/' \
+    | xargs -I@ wget https://github.com/ogham/dog/releases/download/v@/dog-v@-x86_64-unknown-linux-gnu.zip -O /tmp/dog.zip
 
-apt update && apt install dog
+mkdir -p /tmp/dog
+unzip /tmp/dog.zip -d /tmp/dog
+
+# Install
+mv /tmp/dog/bin/dog /tools/bin/dog
+
+# Add zsh plugin if installed
+which zsh
+if [[ $? -eq 0]]; then
+    echo "~ adding zsh plugin"
+    mkdir -p /root/.oh-my-zsh/custom/plugins/dog
+    mv /tmp/dog/completions/dog.zsh /root/.oh-my-zsh/custom/plugins/dog/dog.zsh
+fi
+
+# Cleanup
+rm -rf /tmp/dog
