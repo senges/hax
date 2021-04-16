@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install zsh using `zsh-in-docker`
-sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
+sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh --no-check-certificate)" -- \
     -t afowler \
     -p git \
     -p zsh-z \
