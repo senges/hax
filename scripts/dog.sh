@@ -16,7 +16,7 @@ mv /tmp/dog/bin/dog /tools/bin/dog
 
 # Add zsh plugin if installed
 which zsh
-if [[ $? -eq 0]]; then
+if [[ $? -eq 0 ]]; then
     echo "~ adding zsh plugin"
     mkdir -p /root/.oh-my-zsh/custom/plugins/dog
     mv /tmp/dog/completions/dog.zsh /root/.oh-my-zsh/custom/plugins/dog/dog.zsh
