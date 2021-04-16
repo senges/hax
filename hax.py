@@ -16,7 +16,7 @@ EXIT_FAILURE = 1
 
 images = {
     'legacy'    : 'hax',
-    'msf'       : 'ubuntu',
+    'msf'       : 'hax-msf',
     'minimal'   : 'hax-minimal',
     'hashcat'   : 'hax-hashcat',
 }
@@ -25,8 +25,9 @@ client = docker.from_env()
 
 @click.group(invoke_without_command = True)
 @click.help_option('-h', '--help')
+@click.option('-i', '--list-images', 'image', is_flag = True, help = 'List local images')
 @click.pass_context
-def main(ctx = None):
+def main(ctx = None, image = False):
 
     # If no parameter, just run the legacy container
     if ctx.invoked_subcommand is None:
