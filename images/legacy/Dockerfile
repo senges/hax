@@ -14,7 +14,7 @@ RUN apt update \
     && apt install -y --no-install-recommends tzdata git wget curl zip unzip vim iputils-ping netcat dnsutils tree
     # && rm -rf /var/lib/apt/lists/
 
-# Install python3 properly
+# Install python3
 RUN /install.sh python3
 
 # Install php
@@ -39,7 +39,7 @@ RUN /install.sh searchsploit.min
 RUN /install.sh sherlock
 
 # Install dog DNS tool
-# Boken due to libc mismatch
+# Broken due to libc mismatch
 # RUN /install.sh dog
 
 # Install arjun HTTP param fuzzer
@@ -47,6 +47,21 @@ RUN /install.sh arjun
 
 # Install ffuf
 RUN /install.sh ffuf
+
+# Install assetfinder
+RUN /install.sh assetfinder
+
+# Install nikto web scanner
+RUN /install.sh nikto
+
+# Install john
+RUN /install.sh john
+
+# Install foremost
+RUN /install.sh foremost
+
+# Install nmap
+RUN /install.sh nmap
 
 # Add
 #   mysql
