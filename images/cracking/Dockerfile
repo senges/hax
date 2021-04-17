@@ -29,4 +29,10 @@ RUN /install.sh hashcat
 # Install fcrackzip
 RUN /install.sh fcrackzip
 
+# Install pydictor
+RUN /install.sh pydictor
+
+# Install cupp
+RUN /install.sh cupp
+
 WORKDIR "/root"
