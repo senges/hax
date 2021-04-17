@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 curl --silent "https://api.github.com/repos/ffuf/ffuf/releases/latest" \
