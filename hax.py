@@ -40,7 +40,7 @@ def main(ctx = None, image = False):
 def start(pull = False, volume = ()):
     """Start general purpose box (same as no command)"""
     
-    run( 'hax', '/bin/zsh', pull, volume )
+    spawn( 'hax', '/bin/zsh', pull, volume )
 
 @main.command()
 @click.help_option('-h', '--help')
@@ -49,7 +49,7 @@ def start(pull = False, volume = ()):
 def msf(pull = False, volume = ()):
     """Start metasploit msfconsole"""
 
-    run( 'msf', '/usr/bin/msfconsole', pull, volume )
+    spawn( 'msf', '/usr/bin/msfconsole', pull, volume )
 
 @main.command()
 @click.help_option('-h', '--help')
@@ -58,7 +58,7 @@ def msf(pull = False, volume = ()):
 def hashcat(pull = False, volume = ()):
     """Start hashcat environment"""
 
-    run( 'hashcat', '/usr/bin/hashcat', pull, volume )
+    spawn( 'hashcat', '/usr/bin/hashcat', pull, volume )
 
 @main.command()
 @click.help_option('-h', '--help')
@@ -81,9 +81,15 @@ def pull(name, xlist):
 @main.command()
 @click.help_option('-h', '--help')
 def list():
-    """List images status"""
+    """List local images"""
+    
+    print('LOCAL IMAGES')
 
-    raise Exception('Not yet implemented')
+    for i in images:
+        if dockerStat( images[i] ):
+            print('+ %s' % i)
+        else:
+            print('- %s' % i)
 
 @main.command()
 @click.help_option('-h', '--help')
@@ -92,8 +98,26 @@ def wordlist():
 
     raise Exception('Not yet implemented')
 
+@main.command()
+@click.help_option('-h', '--help')
+@click.argument('name', required = True, type = click.STRING)
+@click.option('-v', '--volume', is_flag = False, multiple = True, help = 'Additional volume in docker format')
+def run(name, volume):
+    """Run custom images"""
+
+    spawn( name, '/entrypoint', pull, volume )
+
+@main.command()
+@click.help_option('-h', '--help')
+def refresh():
+    """Pull latest version of local images"""
+
+    for i in images:
+        if dockerStat( images[i] ):
+            dockerPull( images[i] )
+
 # Run app lifecycle
-def run(image: str, entrypoint: str, pull: bool = False, volume: tuple = ()):
+def spawn(image: str, entrypoint: str, pull: bool = False, volume: tuple = ()):
 
     # Pull if required
     if pull: dockerPull( image )
@@ -103,6 +127,19 @@ def run(image: str, entrypoint: str, pull: bool = False, volume: tuple = ()):
 
     # Run image
     dockerRun(image, entrypoint, volumes)
+
+# Check if local image is present
+def dockerStat(name: str) -> bool:
+    try:
+        client.images.get( name )
+
+    except docker.errors.ImageNotFound:
+        return False
+
+    except docker.errors.APIError:
+        panic( 'Could not connect to docker socket' )
+
+    return True
 
 # Docker volume list generation
 def dockerVolumes(userVolumes: tuple = ()) -> dict:
