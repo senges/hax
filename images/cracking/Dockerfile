@@ -35,4 +35,7 @@ RUN /install.sh pydictor
 # Install cupp
 RUN /install.sh cupp
 
+# Install samdump2
+RUN /install.sh samdump2
+
 WORKDIR "/root"
