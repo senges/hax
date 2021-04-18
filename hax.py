@@ -6,11 +6,13 @@
 # Description : A CTF tools in docker manager
 # =============================================================================
 
+from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich import box
 
 import os
+import json
 import click
 import docker
 import dockerpty
@@ -18,14 +20,16 @@ import dockerpty
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 
+# Tagging strategy will be improved very soon
+
 images = {
-    'legacy'    : 'hax-legacy',
-    'hax'       : 'hax',
-    'minimal'   : 'hax-minimal',
-    'expose'    : 'hax-expose',
-    'msf'       : 'hax-msf',
-    'cracking'  : 'hax-crack',
-    'osint'     : 'hax-osint'
+    'legacy'    : 'hax:legacy',
+    'hax'       : 'hax:latest',
+    'minimal'   : 'hax:minimal',
+    'expose'    : 'hax:expose',
+    'msf'       : 'hax:msf',
+    'cracking'  : 'hax:crack',
+    'osint'     : 'hax:osint'
 }
 
 verbose = True
@@ -40,14 +44,13 @@ console = Console()
 def main(ctx=None, image=False, vflag=False):
     # verbose = vflag
 
-    # If no parameter, just run the legacy container
+    # If no parameter, just run the default container
     if ctx.invoked_subcommand is None:
-        spawn('legacy', False, ())
-
+        spawn('hax', False, ())
 
 @main.command()
 @click.help_option('-h', '--help')
-@click.argument('name', required=False, default='legacy', type=click.STRING)
+@click.argument('name', required=False, default='hax', type=click.STRING)
 @click.option('-p', '--pull',   is_flag=True,  help='Pull image if not present')
 @click.option('-v', '--volume', is_flag=False, multiple=True, help='Additional volume in docker format')
 def run(name, pull, volume):
@@ -55,19 +58,17 @@ def run(name, pull, volume):
 
     spawn(name, pull, volume)
 
-
 @main.command()
 @click.help_option('-h', '--help')
-@click.argument('name', required=False, default='legacy', type=click.Choice(list(images)))
+@click.argument('name', required=False, default='hax', type=click.Choice(list(images)))
 def pull(name):
     """Pull image and exit"""
 
-    dockerPull(name)
+    dockerPull( images[name] )
 
-
-@main.command()
+@main.command('list')
 @click.help_option('-h', '--help')
-def list():
+def xlist():
     """List local images"""
 
     table = Table(show_header=True, header_style="bold", box=box.SQUARE)
@@ -83,7 +84,6 @@ def list():
 
     console.print(table)
 
-
 @main.command()
 @click.help_option('-h', '--help')
 def refresh():
@@ -91,13 +91,12 @@ def refresh():
 
     for i in images:
         if dockerStat(images[i]):
-            try:
-                dockerPull(images[i])
-            except:
-                pass
 
+            # Do not exit on program panic
+            try: dockerPull(images[i])
+            except: pass
 
-@main.command()
+@main.command(short_help = 'Expose TCP endpoint using ngrok')
 @click.help_option('-h', '--help')
 @click.argument('port', required = True, type = click.STRING)
 @click.option('-p', '--pull', is_flag = True, help='Pull image if not present')
@@ -112,8 +111,47 @@ def expose(port, pull):
         name    = 'expose', 
         pull    = pull, 
         volumes = (), 
-        env     = [ 'PORT=' + port ]
+        env     = [ 'NGROK_PORT=' + port ]
     )
+
+@main.command()
+@click.help_option('-h', '--help')
+@click.confirmation_option(prompt = 'Any configuration will be stored plaintext on disk. Continue ?')
+@click.option('--ngrok_token', prompt=True, default=lambda: getConfig('ngrok_token'))
+def config(ngrok_token):
+    """Configure hax"""
+    
+    env = []
+    volumes = []
+
+    config_folder = os.environ.get('HOME') + '/.hax'
+
+    # Ask for custom additional volumes
+    console.print('[yellow]Additional volumes (one per line, docker format)')
+    while v := click.prompt('Volume ' + str(len(volumes) + 1), default=False, show_default=False, type=str):
+        volumes.append(v)
+
+    # Ask for custom additional en vars
+    console.print('[yellow]Additional environment variables (one per line, `NAME=val` format)')
+    while e := click.prompt('Var ' + str(len(env) + 1), default=False, show_default=False, type=str):
+        env.append(e)
+
+    try:
+        Path(config_folder).mkdir(exist_ok = True)
+
+    except FileNotFoundError:
+        panic( 'Parent directory must exist' )
+    
+    with open(os.path.join(config_folder, 'config.json'), 'w+') as f:
+        config = {
+            'ngrok_token' : ngrok_token,
+            'volumes'     : volumes,
+            'env'         : env
+        }
+
+        json.dump(config, f, indent = 4)
+
+    success('Config file updated !')
 
 @main.command()
 @click.help_option('-h', '--help')
@@ -121,7 +159,6 @@ def wordlist():
     """Manage wordlists"""
 
     panic('Not yet implemented')
-
 
 @main.command()
 @click.help_option('-h', '--help')
@@ -133,15 +170,23 @@ def build():
 # Spawn new docker environment
 def spawn(name: str, pull: bool = False, volumes: tuple = (), env: list = []):
 
+    if images.get(name):
+        image = images[name]    # If builtin image
+    else:
+        image = name            # Else it's custom image
+
     # Pull if required
     if pull:
-        dockerPull(images[name])
+        dockerPull(image)
 
     # Generate volumes between host and docker
     volumes = dockerVolumes(volumes)
 
+    # Generate environment variables to expose in docker
+    env = dockerEnv(env)
+    
     # Run image
-    dockerRun(images[name], volumes, env)
+    dockerRun(image, volumes, env)
 
 # Check if local image is present
 def dockerStat(name: str):
@@ -156,6 +201,16 @@ def dockerStat(name: str):
 
     return img
 
+# Docker env list generation
+def dockerEnv(env: list = []):
+    env.append( 'NGROK_TOK=' + getConfig('ngrok_token') )
+
+    # Add env from config file if any
+    if custom := getConfig('env'):
+        env += custom
+
+    return env
+
 # Docker volume list generation
 def dockerVolumes(userVolumes: tuple = ()) -> dict:
     volumes = {
@@ -168,13 +223,16 @@ def dockerVolumes(userVolumes: tuple = ()) -> dict:
     if os.path.isdir(ssh):
         volumes[ssh] = {'bind': '/root/.ssh', 'mode': 'ro'}
 
+    # Add volumes from config file if any
+    userVolumes += tuple(getConfig('volumes'))
+
     # Add user custom volume if any
     for v in userVolumes:
         try:
             chunk = v.split(':')
 
             if len(chunk) < 2:
-                raise ValueError('Missing parts in volume declaration')
+                raise ValueError( f'Missing parts in volume declaration `{ v }`' )
 
             # Default mount strategie is read/write
             if len(chunk) == 2:
@@ -183,7 +241,7 @@ def dockerVolumes(userVolumes: tuple = ()) -> dict:
             # Not sure if necessary as docker does not enforce
             # local path stat.
             if not os.path.isdir(chunk[0]):
-                raise ValueError(f'Path { chunk[0] } does not exist')
+                raise ValueError(f'Local path `{ chunk[0] }` does not exist')
 
             # Make sure rwx rights are properly set
             if chunk[2] not in ['ro', 'rw']:
@@ -206,7 +264,7 @@ def dockerPull(name: str):
 
     try:
         with console.status("[bold grey]Pulling ..."):
-            client.images.pull(name, 'latest')
+            client.images.pull( name )
 
     except docker.errors.APIError:
         panic(f'Could not pull image { name }')
@@ -217,11 +275,10 @@ def dockerPull(name: str):
 def dockerRun(name: str, volumes: dict = {}, env: list = []):
 
     if not dockerStat(name):
-        panic(
-            f'Image { name } not found locally. Use `pull` command or add `--pull` flag.')
+        panic(f'Image { name } not found locally. Use `pull` command or add `--pull` flag.')
 
     container = client.containers.create(
-        image        = '%s:latest' % name,
+        image        = name,
         auto_remove  = True,
         hostname     = 'hax',
         stdin_open   = True,
@@ -234,8 +291,25 @@ def dockerRun(name: str, volumes: dict = {}, env: list = []):
     dockerpty.start(client.api, container.id)
 
 # Return docker image size
-def dockerSize(image: str) -> str:
-    return prettySize(image.attrs['Size'])
+def dockerSize(image: docker.models.images.Image) -> str:
+    size = int(image.attrs['Size'])
+
+    # Remove top layer size if not legacy image
+    if images['legacy'] not in image.tags:
+        if legacy := dockerStat( images['legacy'] ):
+            size -= int(legacy.attrs['Size'])
+
+    return prettySize(size)
+
+# Get key from config file
+def getConfig(key: str):
+    try:
+        with open(os.environ.get('HOME') + '/.hax/config.json') as f:
+            value = json.load(f).get(key)
+    except:
+        value = None
+
+    return value
 
 # Program panic
 def panic(err: str):
@@ -255,7 +329,6 @@ def success(msg: str):
 # Pretty print bytes
 def prettySize(bytes, units=['', 'KO', 'Mo', 'Go', 'To']):
     return str(bytes) + ' ' + units[0] if bytes < 1024 else prettySize(bytes >> 10, units[1:])
-
 
 if __name__ == '__main__':
     main()
