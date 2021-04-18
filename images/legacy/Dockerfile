@@ -10,9 +10,9 @@ COPY ./scripts/install.sh /install.sh
 RUN chmod +x /install.sh
 
 # Install common packages
-RUN apt update
+RUN apt update \
+    && apt install -y --no-install-recommends tzdata git wget curl zip unzip vim iputils-ping netcat dnsutils tree
     # && rm -rf /var/lib/apt/lists/
-RUN /install.sh utils
 
 # Install python3
 RUN /install.sh python3
