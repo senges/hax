@@ -1,6 +1,6 @@
-FROM hax-legacy:latest
+FROM hax:legacy
 
 # Install ngrok
 RUN /install.sh ngrok
 
-ENTRYPOINT /tools/bin/ngrok tcp $PORT
+ENTRYPOINT /tools/bin/ngrok tcp --authtoken $NGROK_TOK $NGROK_PORT

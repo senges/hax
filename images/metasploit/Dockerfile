@@ -1,4 +1,4 @@
-FROM hax-legacy:latest
+FROM hax:legacy
 
 # Install metasploit
 RUN /install.sh metasploit

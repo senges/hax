@@ -1,4 +1,4 @@
-FROM hax-legacy:latest
+FROM hax:legacy
 
 # Install python3
 RUN /install.sh python3
