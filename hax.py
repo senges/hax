@@ -50,8 +50,7 @@ def main(ctx=None, image=False, vflag=False):
 @click.argument('name', required=False, default='legacy', type=click.STRING)
 @click.option('-p', '--pull',   is_flag=True,  help='Pull image if not present')
 @click.option('-v', '--volume', is_flag=False, multiple=True, help='Additional volume in docker format')
-@click.option('-P', '--port',   is_flag=False, multiple=True, help='Port binding in docker format')
-def run(name, pull, volume, port):
+def run(name, pull, volume):
     """Run ctf environment"""
 
     spawn(name, pull, volume)
@@ -113,7 +112,6 @@ def expose(port, pull):
         name    = 'expose', 
         pull    = pull, 
         volumes = (), 
-        ports   = (f'{ port }:{ port }', '4242:4242'), 
         env     = [ 'PORT=' + port ]
     )
 
@@ -133,7 +131,7 @@ def build():
     panic('Not yet implemented')
 
 # Spawn new docker environment
-def spawn(name: str, pull: bool = False, volumes: tuple = (), ports: tuple = (), env: list = []):
+def spawn(name: str, pull: bool = False, volumes: tuple = (), env: list = []):
 
     # Pull if required
     if pull:
@@ -142,11 +140,8 @@ def spawn(name: str, pull: bool = False, volumes: tuple = (), ports: tuple = (),
     # Generate volumes between host and docker
     volumes = dockerVolumes(volumes)
 
-    # Generate ports bindings between host and docker
-    ports = dockerPorts(ports)
-
     # Run image
-    dockerRun(images[name], volumes, ports, env)
+    dockerRun(images[name], volumes, env)
 
 # Check if local image is present
 def dockerStat(name: str):
@@ -160,27 +155,6 @@ def dockerStat(name: str):
         panic('Could not connect to docker socket')
 
     return img
-
-# Docker port list generation
-def dockerPorts(userPort: tuple = ()) -> dict:
-    ports = {}
-
-    for p in userPort:
-        try:
-            chunk = p.split(':')
-
-            if len(chunk) < 2:
-                raise ValueError('Missing parts in port declaration')
-        
-            ports[ chunk[1] ] = chunk[0]
-
-        except ValueError as err:
-            panic(err.args[0])
-
-        except:
-            panic(f'Invalid port format `{ p }`')
-
-    return ports
 
 # Docker volume list generation
 def dockerVolumes(userVolumes: tuple = ()) -> dict:
@@ -240,21 +214,21 @@ def dockerPull(name: str):
     success(f'Image { name } pull done')
 
 # Start container
-def dockerRun(name: str, volumes: dict = {}, ports: dict = {}, env: list = []):
+def dockerRun(name: str, volumes: dict = {}, env: list = []):
 
     if not dockerStat(name):
         panic(
             f'Image { name } not found locally. Use `pull` command or add `--pull` flag.')
 
     container = client.containers.create(
-        image='%s:latest' % name,
-        auto_remove=True,
-        hostname='hax',
-        stdin_open=True,
-        tty=True,
-        volumes=volumes,
-        ports=ports,
-        environment=env,
+        image        = '%s:latest' % name,
+        auto_remove  = True,
+        hostname     = 'hax',
+        stdin_open   = True,
+        tty          = True,
+        network_mode = 'host',
+        volumes      = volumes,
+        environment  = env,
     )
 
     dockerpty.start(client.api, container.id)
