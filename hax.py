@@ -6,6 +6,10 @@
 # Description : A CTF tools in docker manager
 # =============================================================================
 
+from rich.console import Console
+from rich.table import Table
+from rich import box
+
 import os
 import click
 import docker
@@ -21,60 +25,37 @@ images = {
     'hashcat'   : 'hax-hashcat',
 }
 
+verbose = True
+
 client = docker.from_env()
+console = Console()
 
 @click.group(invoke_without_command = True)
 @click.help_option('-h', '--help')
-@click.option('-i', '--list-images', 'image', is_flag = True, help = 'List local images')
+# @click.option('-v', '--verbose', 'vflag', is_flag = True, help = 'Verbose mode')
 @click.pass_context
-def main(ctx = None, image = False):
+def main(ctx = None, image = False, vflag = False):
+    # verbose = vflag
 
     # If no parameter, just run the legacy container
     if ctx.invoked_subcommand is None:
-        start()
+        spawn( 'legacy', False, () )
 
 @main.command()
 @click.help_option('-h', '--help')
-@click.option('-p', '--pull',   is_flag = True,  help = 'Allow image pull to local registry')
+@click.argument('name', required = False, default = 'legacy', type = click.STRING)
+@click.option('-p', '--pull',   is_flag = True,  help = 'Pull image if not present')
 @click.option('-v', '--volume', is_flag = False, multiple = True, help = 'Additional volume in docker format')
-def start(pull = False, volume = ()):
-    """Start general purpose box (same as no command)"""
+def run(name, pull, volume):
+    """Run ctf environment"""
     
-    spawn( 'hax', '/bin/zsh', pull, volume )
+    spawn( name, pull, volume )
 
 @main.command()
 @click.help_option('-h', '--help')
-@click.option('-p', '--pull',   is_flag = True,  help = 'Allow image pull to local registry')
-@click.option('-v', '--volume', is_flag = False, multiple = True, help = 'Additional volume in docker format')
-def msf(pull = False, volume = ()):
-    """Start metasploit msfconsole"""
-
-    spawn( 'msf', '/usr/bin/msfconsole', pull, volume )
-
-@main.command()
-@click.help_option('-h', '--help')
-@click.option('-p', '--pull',   is_flag = True,  help = 'Allow image pull to local registry')
-@click.option('-v', '--volume', is_flag = False, multiple = True, help = 'Additional volume in docker format')
-def hashcat(pull = False, volume = ()):
-    """Start hashcat environment"""
-
-    spawn( 'hashcat', '/usr/bin/hashcat', pull, volume )
-
-@main.command()
-@click.help_option('-h', '--help')
-@click.option('-l', '--list', 'xlist', is_flag = True, help = 'List available images')
-@click.argument('name', required = False, type = click.Choice( list(images) ))
-def pull(name, xlist):
+@click.argument('name', required = False, default = 'legacy', type = click.Choice( list(images) ))
+def pull(name):
     """Pull image and exit"""
-
-    if xlist:
-        print( 'Available images :' )
-        print( '\n'.join(['> ' + x for x in images]) )
-        exit( EXIT_SUCCESS )
-
-    if not name:
-        dockerPull('legacy')
-        return
     
     dockerPull( name )
 
@@ -82,30 +63,19 @@ def pull(name, xlist):
 @click.help_option('-h', '--help')
 def list():
     """List local images"""
-    
-    print('LOCAL IMAGES')
+
+    table = Table( show_header = True, header_style = "bold", box = box.SQUARE )
+    table.add_column("Images")
+    table.add_column("Size",  justify='right')
+    table.add_column("State", justify='center')
 
     for i in images:
-        if dockerStat( images[i] ):
-            print('+ %s' % i)
+        if img := dockerStat( images[i] ):
+            table.add_row(i, '[i]' + dockerSize(img), '✓')
         else:
-            print('- %s' % i)
+            table.add_row(i, '-', '✗ ')
 
-@main.command()
-@click.help_option('-h', '--help')
-def wordlist():
-    """Manage wordlists"""
-
-    raise Exception('Not yet implemented')
-
-@main.command()
-@click.help_option('-h', '--help')
-@click.argument('name', required = True, type = click.STRING)
-@click.option('-v', '--volume', is_flag = False, multiple = True, help = 'Additional volume in docker format')
-def run(name, volume):
-    """Run custom images"""
-
-    spawn( name, '/entrypoint', pull, volume )
+    console.print(table)
 
 @main.command()
 @click.help_option('-h', '--help')
@@ -114,24 +84,39 @@ def refresh():
 
     for i in images:
         if dockerStat( images[i] ):
-            dockerPull( images[i] )
+            try: dockerPull( images[i] )
+            except: pass
 
-# Run app lifecycle
-def spawn(image: str, entrypoint: str, pull: bool = False, volume: tuple = ()):
+@main.command()
+@click.help_option('-h', '--help')
+def wordlist():
+    """Manage wordlists"""
+
+    panic( 'Not yet implemented' )
+
+@main.command()
+@click.help_option('-h', '--help')
+def build():
+    """Build images from source"""
+
+    panic( 'Not yet implemented' )
+
+# Spawn new docker environment
+def spawn(name: str, pull: bool = False, volume: tuple = ()):
 
     # Pull if required
-    if pull: dockerPull( image )
+    if pull: dockerPull( images[name] )
 
     # Generate volumes between host and docker
     volumes = dockerVolumes(volume)
 
     # Run image
-    dockerRun(image, entrypoint, volumes)
+    dockerRun(images[name], volumes)
 
 # Check if local image is present
-def dockerStat(name: str) -> bool:
+def dockerStat(name: str):
     try:
-        client.images.get( name )
+        img = client.images.get( name )
 
     except docker.errors.ImageNotFound:
         return False
@@ -139,7 +124,7 @@ def dockerStat(name: str) -> bool:
     except docker.errors.APIError:
         panic( 'Could not connect to docker socket' )
 
-    return True
+    return img
 
 # Docker volume list generation
 def dockerVolumes(userVolumes: tuple = ()) -> dict:
@@ -187,10 +172,11 @@ def dockerVolumes(userVolumes: tuple = ()) -> dict:
 # Pull docker image
 def dockerPull(name: str):
 
-    info ( f'Pulling image { name } ...' )
+    info ( f'Pulling image { name } from registry' )
 
     try:
-        client.images.pull( images[name], 'latest' )
+        with console.status("[bold grey]Pulling ..."):
+            client.images.pull( name, 'latest' )
 
     except docker.errors.APIError:
         panic( f'Could not pull image { name }' )
@@ -198,15 +184,10 @@ def dockerPull(name: str):
     success( f'Image { name } pull done' )
 
 # Start container
-def dockerRun(name: str, entrypoint: str, volumes: dict = {}):
-    try:
-        client.images.get( name )
+def dockerRun(name: str, volumes: dict = {}):
 
-    except docker.errors.ImageNotFound:
+    if not dockerStat( name ):
         panic( f'Image { name } not found locally. Use `pull` command or add `--pull` flag.' )
-
-    except docker.errors.APIError:
-        panic( 'Could not connect to docker socket' )
 
     container = client.containers.create(
         image           = '%s:latest' % name,
@@ -214,25 +195,31 @@ def dockerRun(name: str, entrypoint: str, volumes: dict = {}):
         hostname        = 'hax',
         stdin_open      = True,
         tty             = True,
-        volumes         = volumes,
-        command         = entrypoint
+        volumes         = volumes
     )
 
     dockerpty.start(client.api, container.id)
 
+# Return docker image size
+def dockerSize(image: str) -> str:
+    return prettySize( image.attrs['Size'] )
+
 # Program panic
 def panic(err: str):
-    print('[-] ' + err)
+    console.print('[red]✗ ' + err)
     exit( EXIT_FAILURE )
 
 # Display cli info
 def info(msg: str):
-    print('[~] ' + msg)
+    if verbose: console.print('[yellow]~ ' + msg)
 
 # Display cli info
 def success(msg: str):
-    print('[+] ' + msg)
+    if verbose: console.print('[green]✓ ' + msg)
+
+# Pretty print bytes
+def prettySize(bytes, units=[ '','KO','Mo','Go','To' ]):
+    return str(bytes) + ' ' + units[0] if bytes < 1024 else prettySize( bytes>>10, units[1:] )
 
 if __name__ == '__main__':
     main()
-    
