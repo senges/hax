@@ -1,4 +1,4 @@
-FROM hax:legacy
+FROM pdrooo/hax:legacy
 
 # Install metasploit
 RUN /install.sh metasploit

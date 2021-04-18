@@ -1,4 +1,4 @@
-FROM hax:legacy
+FROM pdrooo/hax:legacy
 
 # Install ngrok
 RUN /install.sh ngrok

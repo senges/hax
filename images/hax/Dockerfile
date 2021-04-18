@@ -1,4 +1,4 @@
-FROM hax:legacy
+FROM pdrooo/hax:legacy
 
 # Install python3
 RUN /install.sh python3
