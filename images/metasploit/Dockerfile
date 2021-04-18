@@ -7,8 +7,8 @@ COPY ./scripts/install.sh /install.sh
 RUN chmod +x /install.sh
 
 # Install common packages
-RUN apt update \
-    && apt install -y --no-install-recommends tzdata curl wget git
+RUN apt update
+RUN /install.sh utils.min
 
 # RUN apt update \
 #     && apt install -y --no-install-recommends wget gnupg2 \
@@ -16,3 +16,7 @@ RUN apt update \
 
 # Install metasploit
 RUN /install.sh metasploit
+
+WORKDIR "/root"
+
+ENTRYPOINT ['/usr/bin/msfconsole']

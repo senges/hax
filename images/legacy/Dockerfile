@@ -10,9 +10,9 @@ COPY ./scripts/install.sh /install.sh
 RUN chmod +x /install.sh
 
 # Install common packages
-RUN apt update \
-    && apt install -y --no-install-recommends tzdata git wget curl zip unzip vim iputils-ping netcat dnsutils tree
+RUN apt update
     # && rm -rf /var/lib/apt/lists/
+RUN /install.sh utils
 
 # Install python3
 RUN /install.sh python3
@@ -63,8 +63,6 @@ RUN /install.sh foremost
 # Install nmap
 RUN /install.sh nmap
 
-# Add
-#   mysql
-#   Wordlists
-
 WORKDIR "/root"
+
+ENTRYPOINT ['/bin/zsh']
