@@ -1,22 +1,6 @@
-FROM ubuntu:latest
-
-ARG DEBIAN_FRONTEND=noninteractive
-
-# Add install script
-COPY ./scripts/install.sh /install.sh
-RUN chmod +x /install.sh
-
-# Install common packages
-RUN apt update \
-    && apt install -y --no-install-recommends tzdata git wget curl zip unzip vim iputils-ping netcat file less
-
-# RUN apt update \
-#     && apt install -y --no-install-recommends wget gnupg2 \
-#     && rm -rf /var/lib/apt/lists/
+FROM hax-legacy:latest
 
 # Install metasploit
 RUN /install.sh metasploit
 
-WORKDIR "/root"
-
-ENTRYPOINT ['/usr/bin/msfconsole']
+ENTRYPOINT [ "/usr/bin/msfconsole" ]
