@@ -6,6 +6,7 @@ sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1
     -p git \
     -p zsh-z \
     -a 'alias vi="vim"' \
+    -a 'alias tools="echo +-----------------+ && echo \| INSTALLED TOOLS \| && echo +-----------------+ && sort /tools/.list"'
     -a 'PATH=$PATH:/tools/bin'
 
 # Install zsh-z plugin
