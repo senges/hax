@@ -23,13 +23,13 @@ EXIT_FAILURE = 1
 # Tagging strategy will be improved very soon
 
 images = {
-    'legacy'    : 'hax:legacy',
-    'hax'       : 'hax:latest',
-    'minimal'   : 'hax:minimal',
-    'expose'    : 'hax:expose',
-    'msf'       : 'hax:msf',
-    'cracking'  : 'hax:crack',
-    'osint'     : 'hax:osint'
+    'legacy'    : 'pdrooo/hax:legacy',
+    'hax'       : 'pdrooo/hax:latest',
+    'minimal'   : 'pdrooo/hax:minimal',
+    'expose'    : 'pdrooo/hax:expose',
+    'msf'       : 'pdrooo/hax:msf',
+    'cracking'  : 'pdrooo/hax:crack',
+    'osint'     : 'pdrooo/hax:osint'
 }
 
 verbose = True
