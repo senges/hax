@@ -75,11 +75,11 @@ List local hax images.
 │ Images   │   Size │ State │
 ├──────────┼────────┼───────┤
 │ legacy   │ 279 Mo │   ✓   │
-│ hax      │ 485 Mo │   ✓   │
+│ hax      │ 490 Mo │   ✓   │
 │ minimal  │      - │   ✗   │
 │ expose   │  30 Mo │   ✓   │
-│ msf      │      - │   ✗   │
-│ cracking │      - │   ✗   │
+│ msf      │ 586 Mo │   ✓   │
+│ cracking │ 289 Mo │   ✓   │
 │ osint    │      - │   ✗   │
 └──────────┴────────┴───────┘
 ```
