@@ -1,7 +1,29 @@
 # Hax
+
+Manage your CTF environment using docker images.
+
 ## Install
 
-To start using hax, it is recommanded to run `hax config` in the first place.
+> I'm working on releasing a pip package to simplify hax install.
+
+```
+➜  git clone --depth 1 https://github.com/senges/hax.git /opt/hax
+➜  pip install --user -r /opt/hax/requirements.txt
+➜  ln -s /opt/hax/hax.py /usr/local/sbin/hax
+```
+
+To start using hax, it is recommanded to run `hax config` in the first place.  
+You will be asked a few questions such as your ngrok token (for expose feature), and optionnal custom volumes, env vars.
+
+```
+➜  hax config
+```
+
+Default config include :
+
+* Volume : `/tmp:/tmp` (read-write)
+* Volume : `$HOME/.ssh:/root/.ssh` (read-only)
+* Env : `NGROK_TOK`
 
 ## Usage
 
@@ -31,14 +53,34 @@ If you just want to run default image, `hax` command alone is enough !
 ➜  hax run <image>
 ```
 
-Hax images are :
 
-* hax (default)
-* msf
-* minimal
-* cracking
-* osing
-* expose (for the expose command)
+| Tools            | hax | cracking | msf | expose |
+|------------------|:---:|:--------:|:---:|:------:|
+| arjun            |  ✓  |          |     |        |
+| assetfinder      |  ✓  |          |     |        |
+| cupp             |     |    ✓     |     |        |
+| dirsearch        |  ✓  |          |     |        |
+| exiftool         |  ✓  |          |     |        |
+| fcrackzip        |     |    ✓     |     |        |
+| ffuf             |  ✓  |          |     |        |
+| foremost         |  ✓  |          |     |        |
+| hashcat          |     |    ✓     |     |        |
+| john             |  ✓  |    ✓     |  ✓  |        |
+| metasploit       |     |          |     |        |
+| mysql            |  ✓  |          |     |        |
+| ngrok            |     |          |     |   ✓    |
+| nikto            |  ✓  |          |     |        |
+| nmap             |  ✓  |          |     |        |
+| php              |  ✓  |          |     |        |
+| pydictor         |     |    ✓     |     |        |
+| python3          |  ✓  |    ✓     |     |        |
+| samdump2         |     |    ✓     |     |        |
+| searchsploit.min |  ✓  |          |     |        |
+| sherlock         |  ✓  |          |     |        |
+| sqlmap           |  ✓  |          |     |        |
+| zsh              |  ✓  |    ✓     |     |        |
+
+> Legacy image is just top layer image and is not aimed to be run by its own
 
 **list**
 
@@ -68,6 +110,16 @@ For example, to expose a local mysql database :
 ➜  hax expose 3306
 ```
 
+**pull**
+
+Pull one image from above.
+
+```
+➜  hax pull msf
+~ Pulling image hax:msf from registry
+✓ Image hax:msf pull done
+```
+
 **refresh**
 
 Pull latest version of local images only.
@@ -75,6 +127,7 @@ Pull latest version of local images only.
 ## Other features
 
 * List installed tools in the docker : `tools`
+* Add custom volumes / env vars is config file using `hax config`
 
 ## Create your own !
 
