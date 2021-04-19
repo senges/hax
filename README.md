@@ -61,7 +61,7 @@ If you just want to run default image, `hax` command alone is enough !
 
 [Available images](##images)
 
-![](./static/hax.png)
+![](./static/hax.jpg)
 
 > Legacy image is just top layer image and is not aimed to be run by its own
 
