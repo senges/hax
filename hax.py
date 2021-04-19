@@ -203,7 +203,10 @@ def dockerStat(name: str):
 
 # Docker env list generation
 def dockerEnv(env: list = []):
-    env.append( 'NGROK_TOK=' + getConfig('ngrok_token') )
+    
+    # Add ngrok token
+    if tok := getConfig('ngrok_token'):
+        env.append( 'NGROK_TOK=' + tok )
 
     # Add env from config file if any
     if custom := getConfig('env'):
@@ -224,7 +227,8 @@ def dockerVolumes(userVolumes: tuple = ()) -> dict:
         volumes[ssh] = {'bind': '/root/.ssh', 'mode': 'ro'}
 
     # Add volumes from config file if any
-    userVolumes += tuple(getConfig('volumes'))
+    if v := getConfig('volumes'):
+        userVolumes += tuple(v)
 
     # Add user custom volume if any
     for v in userVolumes:
