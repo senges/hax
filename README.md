@@ -53,38 +53,15 @@ Commands:
 
 **# run**
 
-If you just want to run default image, `hax` command alone is enough !
+If you just want to run default image, `hax` command alone is enough !  
 
 ```
 ➜  hax run <image>
 ```
 
+[Available images](##images)
 
-| Tools            | hax | cracking | msf | expose |
-|------------------|:---:|:--------:|:---:|:------:|
-| arjun            |  ✓  |          |     |        |
-| assetfinder      |  ✓  |          |     |        |
-| cupp             |     |    ✓     |     |        |
-| dirsearch        |  ✓  |          |     |        |
-| exiftool         |  ✓  |          |     |        |
-| fcrackzip        |     |    ✓     |     |        |
-| ffuf             |  ✓  |          |     |        |
-| foremost         |  ✓  |          |     |        |
-| hashcat          |     |    ✓     |     |        |
-| john             |  ✓  |    ✓     |  ✓  |        |
-| metasploit       |     |          |     |        |
-| mysql            |  ✓  |          |     |        |
-| ngrok            |     |          |     |   ✓    |
-| nikto            |  ✓  |          |     |        |
-| nmap             |  ✓  |          |     |        |
-| php              |  ✓  |          |     |        |
-| pydictor         |     |    ✓     |     |        |
-| python3          |  ✓  |    ✓     |     |        |
-| samdump2         |     |    ✓     |     |        |
-| searchsploit.min |  ✓  |          |     |        |
-| sherlock         |  ✓  |          |     |        |
-| sqlmap           |  ✓  |          |     |        |
-| zsh              |  ✓  |    ✓     |     |        |
+![](./static/hax.png)
 
 > Legacy image is just top layer image and is not aimed to be run by its own
 
@@ -129,6 +106,34 @@ Pull one image from above.
 **# refresh**
 
 Pull latest version of local images only.
+
+## Images
+
+| Tools            | hax | cracking | msf | expose |
+|------------------|:---:|:--------:|:---:|:------:|
+| arjun            |  ✓  |          |     |        |
+| assetfinder      |  ✓  |          |     |        |
+| cupp             |     |    ✓     |     |        |
+| dirsearch        |  ✓  |          |     |        |
+| exiftool         |  ✓  |          |     |        |
+| fcrackzip        |     |    ✓     |     |        |
+| ffuf             |  ✓  |          |     |        |
+| foremost         |  ✓  |          |     |        |
+| hashcat          |     |    ✓     |     |        |
+| john             |  ✓  |    ✓     |  ✓  |        |
+| metasploit       |     |          |     |        |
+| mysql            |  ✓  |          |     |        |
+| ngrok            |     |          |     |   ✓    |
+| nikto            |  ✓  |          |     |        |
+| nmap             |  ✓  |          |     |        |
+| php              |  ✓  |          |     |        |
+| pydictor         |     |    ✓     |     |        |
+| python3          |  ✓  |    ✓     |     |        |
+| samdump2         |     |    ✓     |     |        |
+| searchsploit.min |  ✓  |          |     |        |
+| sherlock         |  ✓  |          |     |        |
+| sqlmap           |  ✓  |          |     |        |
+| zsh              |  ✓  |    ✓     |     |        |
 
 ## Other features
 
