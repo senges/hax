@@ -6,6 +6,12 @@ Manage your CTF environment using docker images.
 
 > I'm working on releasing a pip package to simplify hax install.
 
+**Requirements :**
+
+* python3
+* pip
+* docker
+
 ```
 ➜  git clone --depth 1 https://github.com/senges/hax.git /opt/hax
 ➜  pip install --user -r /opt/hax/requirements.txt
