@@ -51,7 +51,7 @@ Commands:
   wordlist  Manage wordlists            # Not yet implemented
 ```
 
-**run**
+**# run**
 
 If you just want to run default image, `hax` command alone is enough !
 
@@ -88,7 +88,7 @@ If you just want to run default image, `hax` command alone is enough !
 
 > Legacy image is just top layer image and is not aimed to be run by its own
 
-**list**
+**# list**
 
 List local hax images.
 
@@ -107,7 +107,7 @@ List local hax images.
 └──────────┴────────┴───────┘
 ```
 
-**expose**
+**# expose**
 
 Expose local port using ngrok.  
 For example, to expose a local mysql database :
@@ -116,7 +116,7 @@ For example, to expose a local mysql database :
 ➜  hax expose 3306
 ```
 
-**pull**
+**# pull**
 
 Pull one image from above.
 
@@ -126,7 +126,7 @@ Pull one image from above.
 ✓ Image hax:msf pull done
 ```
 
-**refresh**
+**# refresh**
 
 Pull latest version of local images only.
 
